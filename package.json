@@ -1,0 +1,13 @@
+{
+  "name": "vscode-custom-keybindings",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reproducible VS Code Vim keybindings with comment-preserving merge and rollback",
+  "license": "MIT",
+  "dependencies": {
+    "jsonc-parser": "3.3.1"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

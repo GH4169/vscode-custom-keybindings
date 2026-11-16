@@ -1,0 +1,425 @@
+{
+  "vim.leader": "<space>",
+  "vim.useCtrlKeys": true,
+  "vim.hlsearch": true,
+  "vim.normalModeKeyBindingsNonRecursive": [
+    {
+      "before": [
+        "<C-w>",
+        "s"
+      ],
+      "commands": [
+        "workbench.action.splitEditorDown"
+      ]
+    },
+    {
+      "before": [
+        "<C-w>",
+        "h"
+      ],
+      "commands": [
+        "workbench.action.splitEditorRight"
+      ]
+    },
+    {
+      "before": [
+        "<C-w>",
+        "<C-s>"
+      ],
+      "commands": [
+        "workbench.action.splitEditorDown"
+      ]
+    },
+    {
+      "before": [
+        "<C-w>",
+        "<C-h>"
+      ],
+      "commands": [
+        "workbench.action.splitEditorRight"
+      ]
+    },
+    {
+      "before": [
+        "z",
+        "o"
+      ],
+      "commands": [
+        "editor.toggleFold"
+      ]
+    },
+    {
+      "before": [
+        "<Enter>"
+      ],
+      "after": [
+        "v",
+        "i",
+        "w"
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "q"
+      ],
+      "commands": [
+        "workbench.action.closeActiveEditor"
+      ]
+    },
+    {
+      "before": [
+        "H"
+      ],
+      "commands": [
+        "workbench.action.previousEditor"
+      ]
+    },
+    {
+      "before": [
+        "L"
+      ],
+      "commands": [
+        "workbench.action.nextEditor"
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "n"
+      ],
+      "commands": [
+        "vimNavigation.toggleExplorer"
+      ]
+    },
+    {
+      "before": [
+        "*"
+      ],
+      "after": [
+        "m",
+        "'",
+        "*",
+        "`",
+        "'"
+      ]
+    },
+    {
+      "before": [
+        "z",
+        "f"
+      ],
+      "commands": [
+        "gvimMarkerFolds.createFold"
+      ]
+    },
+    {
+      "before": [
+        "z",
+        "d"
+      ],
+      "commands": [
+        "gvimMarkerFolds.deleteFold"
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "h"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.toggle",
+          "args": {
+            "visual": false
+          }
+        }
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "H"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.remove",
+          "args": {
+            "visual": false
+          }
+        }
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "1"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.blue",
+          "args": {
+            "visual": false
+          }
+        }
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "2"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.pink",
+          "args": {
+            "visual": false
+          }
+        }
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "3"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.green",
+          "args": {
+            "visual": false
+          }
+        }
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "4"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.yellow",
+          "args": {
+            "visual": false
+          }
+        }
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "0"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.clearAll",
+          "args": {
+            "visual": false
+          }
+        }
+      ]
+    },
+    {
+      "before": [
+        "]",
+        "h"
+      ],
+      "commands": [
+        "colorMarks.next"
+      ]
+    },
+    {
+      "before": [
+        "[",
+        "h"
+      ],
+      "commands": [
+        "colorMarks.previous"
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "i",
+        "m",
+        "e"
+      ],
+      "commands": [
+        "editorImeMode.toggleCommandLineEnglish"
+      ]
+    },
+    {
+      "before": [
+        "<C-s>"
+      ],
+      "commands": [
+        "workbench.action.files.save"
+      ]
+    },
+    {
+      "before": [
+        "<C-h>"
+      ],
+      "commands": [
+        "workbench.action.navigateLeft"
+      ]
+    }
+  ],
+  "vim.visualModeKeyBindingsNonRecursive": [
+    {
+      "before": [
+        ">"
+      ],
+      "after": [
+        ">",
+        "g",
+        "v"
+      ]
+    },
+    {
+      "before": [
+        "<"
+      ],
+      "after": [
+        "<",
+        "g",
+        "v"
+      ]
+    },
+    {
+      "before": [
+        "<Enter>"
+      ],
+      "after": [
+        "<Esc>"
+      ]
+    },
+    {
+      "before": [
+        "z",
+        "f"
+      ],
+      "commands": [
+        "gvimMarkerFolds.createFold"
+      ]
+    },
+    {
+      "before": [
+        "z",
+        "d"
+      ],
+      "commands": [
+        "gvimMarkerFolds.deleteFold"
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "h"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.toggle",
+          "args": {
+            "visual": true
+          }
+        }
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "H"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.remove",
+          "args": {
+            "visual": true
+          }
+        }
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "1"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.blue",
+          "args": {
+            "visual": true
+          }
+        }
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "2"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.pink",
+          "args": {
+            "visual": true
+          }
+        }
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "3"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.green",
+          "args": {
+            "visual": true
+          }
+        }
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "4"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.yellow",
+          "args": {
+            "visual": true
+          }
+        }
+      ]
+    },
+    {
+      "before": [
+        "<leader>",
+        "0"
+      ],
+      "commands": [
+        {
+          "command": "colorMarks.clearAll",
+          "args": {
+            "visual": true
+          }
+        }
+      ]
+    }
+  ],
+  "vim.handleKeys": {
+    "<C-a>": false,
+    "<C-f>": false,
+    "<C-z>": false
+  },
+  "editor.folding": true,
+  "editor.foldingStrategy": "auto",
+  "editor.defaultFoldingRangeProvider": "local.gvim-marker-folds",
+  "vim.foldfix": true,
+  "vim.autoSwitchInputMethod.enable": false
+}
