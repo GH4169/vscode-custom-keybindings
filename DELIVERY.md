@@ -7,7 +7,7 @@
 | `vscode-vim-sv-match` | 词法匹配、内存 movement 适配、配置、VSIX、测试 | 已安装 Windows UI 端；Normal/Visual/count 联合回归通过 |
 | `vscode-vim-search-highlight-sync` | 原生绘制包装、每 editor 缓存、事件刷新、VSIX | 已安装；同文档分屏刷新及选区保持通过 |
 | `vscode-vim-navigation` | Explorer 开关、安全替换标签、Codex 焦点桥与右边界导航、键位片段、0.1.1 VSIX | Windows UI 已升级，用户运行副本已补丁；21 项隔离 GUI 通过；已登录官方 Codex 的 Windows 输入框仍待实际验收 |
-| `vscode-vim-marker-folds` | marker 创建/安全删除、provider、行数装饰、VSIX | 已安装；创建/撤销/provider 通过；EOF 行数等边缘视觉情况未完整验证 |
+| `vscode-vim-marker-folds` | marker motion 操作符、嵌套/递归操作、层级/开关/导航、provider、行数、VSIX | 0.2.0；35 项折叠 GUI 与 13 项逻辑检查通过，含真实 RTL 副本、EOF、撤销重做、保存重开与分屏 |
 | `vscode-color-marks` | 固定坐标/组/颜色/跳转/重命名、VSIX | 已安装；跨次数跳转、固定坐标、Leader 共存通过 |
 | `vscode-codex-stability` | 只读诊断 CLI、测试、说明 | 未见原诊断信号，未改 http.electronFetch |
 | `vscode-codex-diff-context` | 已按用户后续要求停用 | 扩展已卸载，源码及独立 Git 历史移至本机归档；Ctrl+Alt+P 直接执行 Codex 原生 `chatgpt.addToThread` |
@@ -32,7 +32,7 @@ Codex 快捷键已按后续要求简化：Ctrl+Alt+P 与右键 Add to Codex Chat
 
 ## 证据
 
-`test-results/integration.json` 为最新联合结果；`test/run-integration.sh` 可重现专用 Xvnc、隔离配置/扩展/工作区。真实按键注入限定该 X server，调试端口只绑定回环并随测试退出；没有 Windows 全局输入事件。
+`test-results/integration.json` 为最新联合结果；`test/run-integration.sh` 通过 `codex-desktop run` 复用独立桌面 :97，使用隔离配置/扩展/工作区。真实按键注入限定该 X server，调试端口只绑定回环并随测试退出；没有 Windows 全局输入事件。
 
 19 项核心 JS 逻辑测试、3 项配置合并/回滚测试、2 项 renderer/补丁保护单元测试（合计 24 项 JS）、2 项 Python 逻辑测试、2 项 Bash/Zsh PTY 测试、1 项 X11 单实例测试已通过。联合集成现为 13 项，包含真实 Enter、Ctrl+W/Ctrl+S、Leader Explorer、颜色次数跳转、IME 状态检查。逻辑/结构验证不能代替 Windows 拼音或真实 Codex 模型请求验证。
 
@@ -49,3 +49,5 @@ Codex 快捷键已按后续要求简化：Ctrl+Alt+P 与右键 Add to Codex Chat
 当前 ~/.install 中保留 10 个活跃独立仓库。停用的 vscode-codex-diff-context 源码及 Git 历史已移至 `~/.local/share/editor-tools/retired/vscode-codex-diff-context/`，不再作为插件安装或快捷键依赖。
 
 各仓库只提交源码、配置片段、测试与文档；VSIX、Code 副本、用户配置、日志、缓存和登录信息不纳入 Git。之后可逐仓库执行 `git remote add origin <url>`、`git push -u origin main`。
+
+2026-11-17 marker 修复：Windows UI 已安装 `local.gvim-marker-folds` 0.2.0 和 `local.vim-sv-match` 0.1.2，安装源码与构建核对一致。配置只修改 Normal/Visual 的折叠映射，备份在 `backups/2026-11-17T09-11-42-594Z`。35 项 marker GUI、13 项折叠逻辑（含真实 Vim 层级对照）、6 项配置合并、5 项 SV 逻辑和 21 项联合回归通过。GUI 在 Linux Code 同版本的独立桌面 :97 运行；日常 Windows 窗口需要 Reload Window 加载新版。

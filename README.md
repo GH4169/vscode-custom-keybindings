@@ -26,7 +26,10 @@ node merge.js rollback "<返回的 backup 目录>"
 | 空格 n，Explorer 空格 n | 显式打开聚焦文件树/关闭 |
 | Explorer Enter / t | 安全替换当前标签 / 原生打开保留原标签 |
 | 空格 h/H/0/1-4，]h/[h | 会话颜色标记；次数和 Explorer 补充由扩展支持 |
-| zf/zd/zo | marker 创建/删除/切换；Normal zf 不创建临时折叠 |
+| zf{motion}/Visual zf、zF | marker 创建；Normal zf 等待动作，支持 `%`、次数、文本对象 |
+| zd/zD/zE、zo/zc/za | marker 单层/递归/全部删除；展开/收起/切换 |
+| zO/zC/zA、zr/zm、zR/zM | 递归操作、逐层展开/收起、全部展开/收起 |
+| zn/zN/zi、zv/zx/zX、zj/zk/[z/]z | 临时折叠开关、刷新/显示光标、折叠边界跳转 |
 | Enter | Normal viw；Visual Esc；Insert 不变 |
 | > / < | Visual 缩进后 gv |
 | * | 原位整词搜索，n/N 仍原生 |
@@ -53,7 +56,7 @@ npm test
 bash test/run-integration.sh
 ```
 
-逻辑测试验证注释/映射合并、幂等、后续编辑保护及回滚。集成在独立 Xvnc :98、临时配置/扩展/工作区进行；可执行副本/VSCodeVim 路径由 EDITOR_TOOLS_TEST_CODE / EDITOR_TOOLS_TEST_VIM 指定。测试调试端口仅绑定回环且随进程退出，不用于日常配置。
+逻辑测试验证注释/映射合并、幂等、后续编辑保护及回滚。集成通过 `codex-desktop run` 在独立桌面 :97、临时配置/扩展/工作区进行；可执行副本/VSCodeVim 路径由 EDITOR_TOOLS_TEST_CODE / EDITOR_TOOLS_TEST_VIM 指定。测试调试端口仅绑定回环且随进程退出，不用于日常配置。
 
 2026-11-16：15 项 Linux Code 1.145.2 联合检查通过，含真实 Enter、Ctrl+W/Ctrl+S、Leader Explorer、颜色次数跳转、输入上下文及 Normal/Visual 中 Ctrl+Alt+P 原生命令路由。后两项通过隔离宿主拦截命令验证，不连接实际 Codex 会话。真实 Windows 微软拼音与 Codex 请求尚未完整端到端验收。详细状态见 DELIVERY.md。
 
