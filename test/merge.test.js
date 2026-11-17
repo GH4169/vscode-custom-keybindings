@@ -160,3 +160,24 @@ test('fold upgrade replaces old immediate zf and toggle zo while preserving othe
   a.ok(normal.some((mapping) => mapping.commands?.includes('user.keep')));
   a.equal(mergeSettings(merged, desired), merged);
 });
+test('Enter upgrade replaces the old mode rule and preserves other Enter bindings', () => {
+  const desired = require('../config/keybindings.json');
+  const other = {
+    key: 'enter',
+    command: 'user.keep',
+    when: 'terminalFocus',
+  };
+  const old =
+    '[// user comment\n' +
+    JSON.stringify(other) + ',' +
+    JSON.stringify({
+      key: 'enter',
+      command: 'vim.remap',
+      args: { after: ['<Enter>'] },
+      when: 'editorTextFocus && vim.active && vim.mode =~ /^(Normal|Visual|VisualLine|VisualBlock)$/',
+    }) + ']';
+  const merged = mergeBindings(old, desired);
+  a.match(merged, /user comment/);
+  a.deepEqual(parse(merged), [other, ...desired]);
+  a.equal(mergeBindings(merged, desired), merged);
+});

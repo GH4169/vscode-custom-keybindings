@@ -51,3 +51,5 @@ Codex 快捷键已按后续要求简化：Ctrl+Alt+P 与右键 Add to Codex Chat
 各仓库只提交源码、配置片段、测试与文档；VSIX、Code 副本、用户配置、日志、缓存和登录信息不纳入 Git。之后可逐仓库执行 `git remote add origin <url>`、`git push -u origin main`。
 
 2026-11-17 marker 修复：Windows UI 已安装 `local.gvim-marker-folds` 0.2.0 和 `local.vim-sv-match` 0.1.2，安装源码与构建核对一致。配置只修改 Normal/Visual 的折叠映射，备份在 `backups/2026-11-17T09-11-42-594Z`。35 项 marker GUI、13 项折叠逻辑（含真实 Vim 层级对照）、6 项配置合并、5 项 SV 逻辑和 21 项联合回归通过。GUI 在 Linux Code 同版本的独立桌面 :97 运行；日常 Windows 窗口需要 Reload Window 加载新版。
+
+2026-11-17 `:w` 修复：输入法限制开启时，命令/搜索模式的默认回车无法产生 Vim 输入；工作台 Enter 规则此前仅覆盖 Normal/Visual。现增加 `CommandlineInProgress`、`SearchInProgressMode`，保留其余模式行为，Windows User 配置自动加载。修复前已在隔离编辑器复现 `:w` 后保持命令模式且磁盘未更新；修复后 25 项联合 GUI、7 项配置合并/回滚全部通过，包含真实回车保存临时文件、英文限制开/关、正反搜索、Insert 换行。测试使用同版本 Linux Code；未操作日常 Windows 窗口，也未修改用户 RTL 文件。

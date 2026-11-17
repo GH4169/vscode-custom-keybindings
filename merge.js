@@ -97,7 +97,19 @@ function mergeBindings(text, desired) {
         'workbench.action.focusActiveEditorGroup',
         'vimNavigation.navigateRightToCodex',
       ].includes(binding.command);
-    if (same || obsolete || obsoleteCodexFocus || retired(binding))
+    const obsoleteVimEnter =
+      binding.key === 'enter' &&
+      binding.command === 'vim.remap' &&
+      binding.when ===
+        'editorTextFocus && vim.active && vim.mode =~ /^(Normal|Visual|VisualLine|VisualBlock)$/' &&
+      JSON.stringify(binding.args) === JSON.stringify({ after: ['<Enter>'] });
+    if (
+      same ||
+      obsolete ||
+      obsoleteCodexFocus ||
+      obsoleteVimEnter ||
+      retired(binding)
+    )
       remove.push(i);
   }
   // Delete array entries by syntax-node offsets. jsonc-parser's formatted

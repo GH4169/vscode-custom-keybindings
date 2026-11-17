@@ -121,7 +121,7 @@
         "<Enter>"
       ]
     },
-    "when": "editorTextFocus && vim.active && vim.mode =~ /^(Normal|Visual|VisualLine|VisualBlock)$/"
+    "when": "editorTextFocus && vim.active && vim.mode =~ /^(Normal|Visual|VisualLine|VisualBlock|CommandlineInProgress|SearchInProgressMode)$/"
   },
   {
     "key": "ctrl+l",

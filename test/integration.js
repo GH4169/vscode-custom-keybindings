@@ -36,8 +36,34 @@ async function run() {
   const vim = vscode.extensions.getExtension('vscodevim.vim');
   await vim.activate();
   const api = require(path.resolve(vim.extensionPath, vim.packageJSON.main));
-  async function until(predicate, description) {
-    const deadline = Date.now() + 3000;
+  const barriers = new Map();
+  let barrierId = 0;
+  const barrierCommand = vscode.commands.registerCommand(
+    'test.editorTools.idle',
+    (id) => barriers.get(id)?.()
+  );
+  // API type/remap calls return before Vim finishes their queued work.
+  // Raw keys use observable conditions because renderer dispatch is asynchronous too.
+  async function idle() {
+    const id = barrierId++;
+    const complete = new Promise((resolve) => barriers.set(id, resolve));
+    let timeout;
+    const timer = new Promise((_, reject) => {
+      timeout = setTimeout(() => reject(new Error('Vim queue timeout')), 10000);
+    });
+    await vscode.commands.executeCommand('vim.remap', {
+      commands: [{ command: 'test.editorTools.idle', args: id }],
+    });
+    try {
+      await Promise.race([complete, timer]);
+    } finally {
+      clearTimeout(timeout);
+      barriers.delete(id);
+    }
+    await delay(100);
+  }
+  async function until(predicate, description, timeout = 3000) {
+    const deadline = Date.now() + timeout;
     while (!(await predicate())) {
       assert.ok(Date.now() < deadline, description);
       await delay(25);
@@ -48,11 +74,11 @@ async function run() {
       await vscode.commands.executeCommand('type', { text: character });
       await delay(35);
     }
-    await delay(100);
+    await idle();
   };
   const escape = async () => {
     await vscode.commands.executeCommand('extension.vim_escape');
-    await delay(60);
+    await idle();
   };
   const file = path.join(process.env.EDITOR_TOOLS_TEST_WORKSPACE, 'sample.sv');
   await fs.writeFile(
@@ -68,6 +94,7 @@ async function run() {
     const p = new vscode.Position(line, character);
     editor.selection = new vscode.Selection(p, p);
     await delay(80);
+    await idle();
     const handler = await api.getAndUpdateModeHandler();
     handler.syncCursors();
     return handler;
@@ -233,6 +260,120 @@ async function run() {
       editor = vscode.window.activeTextEditor;
     }
   );
+  for (const english of [true, false]) {
+    await record(
+      'raw :w Enter saves dirty text to disk with command IME ' +
+        (english ? 'restricted' : 'following system'),
+      async () => {
+        await vscode.commands.executeCommand(
+          'workbench.action.focusActiveEditorGroup'
+        );
+        editor = vscode.window.activeTextEditor;
+        const h = await position(0);
+        const originalEnglish = await renderer(
+          'globalThis.__editorImeMode.inspect().commandLineEnglish'
+        );
+        if (originalEnglish !== english)
+          await vscode.commands.executeCommand(
+            'editorImeMode.toggleCommandLineEnglish'
+          );
+        await doc.save();
+        await editor.edit((b) =>
+          b.insert(new vscode.Position(0, 0), '// saved through :w\n')
+        );
+        const expected = doc.getText();
+        assert.equal(doc.isDirty, true);
+        assert.notEqual(await fs.readFile(file, 'utf8'), expected);
+        try {
+          await rawKey('colon');
+          await until(() => h.vimState.currentMode === 6, ': enters command mode');
+          await rawKey('w');
+          await until(
+            () => h.vimState.modeData.commandLine?.text === 'w',
+            'command line receives w'
+          );
+          await rawKey('Return');
+          await until(
+            () => h.vimState.currentMode === 0 && !doc.isDirty,
+            ':w Enter should return to Normal and save the document'
+          );
+          assert.equal(await fs.readFile(file, 'utf8'), expected);
+        } finally {
+          await escape();
+          await editor.edit((b) => b.delete(new vscode.Range(0, 0, 1, 0)));
+          await doc.save();
+          if (originalEnglish !== english)
+            await vscode.commands.executeCommand(
+              'editorImeMode.toggleCommandLineEnglish'
+            );
+        }
+      }
+    );
+  }
+  await record('raw search Enter submits forward and backward searches', async () => {
+    await vscode.commands.executeCommand(
+      'workbench.action.focusActiveEditorGroup'
+    );
+    editor = vscode.window.activeTextEditor;
+    const originalEnglish = await renderer(
+      'globalThis.__editorImeMode.inspect().commandLineEnglish'
+    );
+    if (!originalEnglish)
+      await vscode.commands.executeCommand(
+        'editorImeMode.toggleCommandLineEnglish'
+      );
+    try {
+      for (const [key, line, expected] of [
+        ['slash', 0, 1],
+        ['question', 6, 2],
+      ]) {
+        const h = await position(line);
+        await rawKey(key);
+        await until(() => h.vimState.currentMode === 5, 'enters search mode');
+        for (const character of 'begin') await rawKey(character);
+        await until(
+          () => h.vimState.modeData.commandLine?.text === 'begin',
+          'search receives begin'
+        );
+        await rawKey('Return');
+        await until(() => h.vimState.currentMode === 0, 'Enter submits search');
+        assert.equal(editor.selection.active.line, expected);
+      }
+    } finally {
+      await escape();
+      if (!originalEnglish)
+        await vscode.commands.executeCommand(
+          'editorImeMode.toggleCommandLineEnglish'
+        );
+    }
+  });
+  await record('raw Insert Enter inserts exactly one newline', async () => {
+    await vscode.commands.executeCommand(
+      'workbench.action.focusActiveEditorGroup'
+    );
+    editor = vscode.window.activeTextEditor;
+    const h = await position(0, doc.lineAt(0).text.length - 1);
+    const before = doc.getText();
+    try {
+      await rawKey('a');
+      await until(() => h.vimState.currentMode === 1, 'a enters Insert');
+      await rawKey('Return');
+      await until(
+        () => doc.getText() === before.replace('\n', '\n\n'),
+        'Insert Enter adds one newline'
+      );
+      assert.equal(h.vimState.currentMode, 1);
+      assert.equal(doc.getText(), before.replace('\n', '\n\n'));
+    } finally {
+      await escape();
+      await editor.edit((b) =>
+        b.replace(
+          new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)),
+          before
+        )
+      );
+    }
+  });
   await record(
     'renderer restricts Normal locally and restores Insert/focus input',
     async () => {
@@ -265,27 +406,44 @@ async function run() {
         env: { TMUX: null, STY: null, SHELL_IME_BACKEND: 'vscode' },
       });
       terminal.show();
-      await delay(500);
       try {
+        await until(
+          () => renderer('!!document.activeElement?.closest(".xterm")'),
+          'terminal receives focus',
+          10000
+        );
         terminal.sendText(
           'source ' + path.resolve(__dirname, '../../shell-ime/shell/bash.sh')
         );
-        await delay(400);
+        await until(
+          () => renderer('document.activeElement?.readOnly === true'),
+          'shell prompt restricts IME',
+          10000
+        );
         let input = await renderer(
           '({name:document.activeElement?.className,readOnly:document.activeElement?.readOnly})'
         );
         assert.match(input.name, /xterm-helper-textarea/);
         assert.equal(input.readOnly, true);
         terminal.sendText('ime system');
-        await delay(200);
+        await until(
+          () => renderer('document.activeElement?.readOnly === false'),
+          'ime system releases input'
+        );
         input = await renderer('({readOnly:document.activeElement?.readOnly})');
         assert.equal(input.readOnly, false);
         terminal.sendText('ime english');
-        await delay(200);
+        await until(
+          () => renderer('document.activeElement?.readOnly === true'),
+          'ime english restricts input'
+        );
         input = await renderer('({readOnly:document.activeElement?.readOnly})');
         assert.equal(input.readOnly, true);
         terminal.sendText('read -r editor_tools_test');
-        await delay(200);
+        await until(
+          () => renderer('document.activeElement?.readOnly === false'),
+          'read releases input'
+        );
         input = await renderer('({readOnly:document.activeElement?.readOnly})');
         assert.equal(input.readOnly, false);
         terminal.sendText('中文测试');
@@ -532,6 +690,7 @@ async function run() {
     )
   );
   const failed = results.filter((r) => !r.passed);
+  barrierCommand.dispose();
   for (const result of results)
     console.log(
       (result.passed ? 'PASS ' : 'FAIL ') +
