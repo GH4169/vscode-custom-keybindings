@@ -11,6 +11,7 @@ export EDITOR_TOOLS_TEST_CDP_PORT="$(python3 -c 'import socket;s=socket.socket()
 cp "$root_dir/config/settings.json" "$test_dir/user/User/settings.json"
 cp "$root_dir/config/keybindings.json" "$test_dir/user/User/keybindings.json"
 cp -a "${EDITOR_TOOLS_TEST_VIM:-$HOME/.cache/editor-tools/integration/extensions/vscodevim.vim-1.32.4}" "$test_dir/extensions/"
+cp -a "$root_dir/test/fixtures/codex-focus" "$test_dir/extensions/test.codex-focus-fixture-1.0.0"
 mkdir -p "$test_dir/extensions/test.sv-language-1.0.0"
 printf '%s\n' '{"name":"sv-language","publisher":"test","version":"1.0.0","engines":{"vscode":"*"},"contributes":{"languages":[{"id":"systemverilog","extensions":[".sv"]}]}}' > "$test_dir/extensions/test.sv-language-1.0.0/package.json"
 printf '%s\n' "$test_dir" > "$root_dir/test-results/LAST_SESSION"

@@ -103,3 +103,32 @@ test('reversible installation refuses to overwrite subsequent user edits', () =>
   fs.rmSync(backup, { recursive: true });
   fs.rmSync(second, { recursive: true });
 });
+test('Codex focus upgrade removes stale rules and preserves other webview shortcuts', () => {
+  const desired = require('../config/keybindings.json');
+  const oldContext =
+    "auxiliaryBarVisible && focusedView == 'chatgpt.sidebarSecondaryView'";
+  const unrelated = {
+    key: 'ctrl+h',
+    command: 'user.otherWebview',
+    when: "webviewId == 'other.view'",
+  };
+  const old = JSON.stringify([
+    {
+      key: 'ctrl+h',
+      command: 'workbench.action.focusActiveEditorGroup',
+      when: oldContext,
+    },
+    ...['ctrl+j', 'ctrl+k', 'ctrl+l'].map((key) => ({
+      key,
+      command: '',
+      when: oldContext,
+    })),
+    unrelated,
+  ]);
+  const merged = mergeBindings(old, desired);
+  const bindings = parse(merged);
+  a.ok(!bindings.some((binding) => binding.when === oldContext));
+  a.deepEqual(bindings[0], unrelated);
+  a.equal(bindings.length, desired.length + 1);
+  a.equal(mergeBindings(merged, desired), merged);
+});

@@ -1,0 +1,35 @@
+{
+  "name": "codex-focus-fixture",
+  "publisher": "test",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.106.0"
+  },
+  "extensionKind": [
+    "ui"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "secondarySidebar": [
+        {
+          "id": "codexSecondaryViewContainer",
+          "title": "Codex Focus Fixture",
+          "icon": "icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "codexSecondaryViewContainer": [
+        {
+          "id": "chatgpt.sidebarSecondaryView",
+          "type": "webview",
+          "name": "Codex Focus Fixture"
+        }
+      ]
+    }
+  }
+}

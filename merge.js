@@ -89,7 +89,16 @@ function mergeBindings(text, desired) {
         binding.command
       ) ||
         binding.command === 'vimNavigation.closeExplorer');
-    if (same || obsolete || retired(binding)) remove.push(i);
+    const obsoleteCodexFocus =
+      ['ctrl+h', 'ctrl+j', 'ctrl+k', 'ctrl+l'].includes(binding.key) &&
+      /chatgpt\.sidebarSecondaryView/.test(binding.when || '') &&
+      [
+        '',
+        'workbench.action.focusActiveEditorGroup',
+        'vimNavigation.navigateRightToCodex',
+      ].includes(binding.command);
+    if (same || obsolete || obsoleteCodexFocus || retired(binding))
+      remove.push(i);
   }
   // Delete array entries by syntax-node offsets. jsonc-parser's formatted
   // deletion can produce an extra brace for compact arrays with comments.

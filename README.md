@@ -33,9 +33,14 @@ node merge.js rollback "<返回的 backup 目录>"
 | 空格 ime | 临时切命令/搜索 IME 规则 |
 | Ctrl+Alt+P | 直接执行 Codex 原生 Add to Codex Chat；Normal 附当前行，有选区附所选范围 |
 | Ctrl+Alt+Q，Alt+Shift+Q | 移除旧绑定 |
-| Codex Ctrl+H / J/K/L | 右侧栏返回编辑组 / 消费边界按键，实际 view 上下文需 Windows 验收 |
+| 编辑器 Ctrl+L → Codex | Normal/Visual 先去右侧编辑组，到边界后进入已显示的 Codex 输入框 |
+| Codex Ctrl+H / J/K/L | 返回最近活动代码组 / 消费边界按键，保留草稿与选区 |
 
 Ctrl+A/F/Z 交给 VS Code。已有 Insert 的 Ctrl+H/J/K/L 映射保留。
+
+Codex 往返需要 `local.vim-navigation` 0.1.1 及其用户运行副本焦点桥。当前 Code 1.145.2 不会在 sidebar Webview 获焦时保持 `focusedView/auxiliaryBarFocus`；规则改用 `vimNavigation.focusedWebview`，仅匹配右侧 Codex，鼠标点入也有效。Ctrl+L 不打开隐藏的 Codex，不修改草稿、不发送。详情及补丁入口见同级 `vscode-vim-navigation/README.md`。
+
+Windows 请保存文件并完全退出全部 Code 窗口，再运行 `%LOCALAPPDATA%\editor-tools\code-ime.cmd`。用户副本与系统版共享配置/扩展；当前系统版进程只 Reload Window 不能加载焦点桥。
 
 Ctrl+Alt+P 绑定 `chatgpt.addToThread`，与右键菜单 Add to Codex Chat / 既有 F13 使用同一命令。Codex 显示带文件名和行号的原生附件卡片，随后在输入框填写问题；不模拟 Visual、不插入解释正文、不自动发送。编辑器 Normal、Visual 和鼠标选区均使用原生语义，只在 `editorTextFocus` 生效。
 
@@ -51,3 +56,5 @@ bash test/run-integration.sh
 逻辑测试验证注释/映射合并、幂等、后续编辑保护及回滚。集成在独立 Xvnc :98、临时配置/扩展/工作区进行；可执行副本/VSCodeVim 路径由 EDITOR_TOOLS_TEST_CODE / EDITOR_TOOLS_TEST_VIM 指定。测试调试端口仅绑定回环且随进程退出，不用于日常配置。
 
 2026-11-16：15 项 Linux Code 1.145.2 联合检查通过，含真实 Enter、Ctrl+W/Ctrl+S、Leader Explorer、颜色次数跳转、输入上下文及 Normal/Visual 中 Ctrl+Alt+P 原生命令路由。后两项通过隔离宿主拦截命令验证，不连接实际 Codex 会话。真实 Windows 微软拼音与 Codex 请求尚未完整端到端验收。详细状态见 DELIVERY.md。
+
+本次 H/L 修复后联合检查为 21 项通过，新增 6 项使用真正 Webview 的独立夹具验证右组优先、Normal/Visual 往返、鼠标点入后返回、草稿与边界、隐藏侧栏、Quick Input 不触发导航。夹具与官方 Codex 使用相同的 view ID 和 composer 获焦逻辑；没有使用真实会话或用户草稿，尚不能替代已登录官方 Codex 的 Windows 验收。可用 `EDITOR_TOOLS_TEST_FILTER` 正则筛选检查名称。

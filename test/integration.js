@@ -7,6 +7,11 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 async function run() {
   const results = [];
   const record = async (name, fn) => {
+    if (
+      process.env.EDITOR_TOOLS_TEST_FILTER &&
+      !new RegExp(process.env.EDITOR_TOOLS_TEST_FILTER).test(name)
+    )
+      return;
     try {
       await fn();
       results.push({ name, passed: true });
@@ -31,11 +36,19 @@ async function run() {
   const vim = vscode.extensions.getExtension('vscodevim.vim');
   await vim.activate();
   const api = require(path.resolve(vim.extensionPath, vim.packageJSON.main));
+  async function until(predicate, description) {
+    const deadline = Date.now() + 3000;
+    while (!(await predicate())) {
+      assert.ok(Date.now() < deadline, description);
+      await delay(25);
+    }
+  }
   const type = async (text) => {
     for (const character of text) {
       await vscode.commands.executeCommand('type', { text: character });
       await delay(35);
     }
+    await delay(100);
   };
   const escape = async () => {
     await vscode.commands.executeCommand('extension.vim_escape');
@@ -144,10 +157,13 @@ async function run() {
           visual: false,
         });
       }
-      await position(1);
-      await type('2]h');
-      assert.equal(editor.selection.active.line, 5);
-      await vscode.commands.executeCommand('colorMarks.clearAll');
+      try {
+        await position(1);
+        await type('2]h');
+        assert.equal(editor.selection.active.line, 5);
+      } finally {
+        await vscode.commands.executeCommand('colorMarks.clearAll');
+      }
     }
   );
   await record(
@@ -335,7 +351,10 @@ async function run() {
         try {
           assert.equal(selection.isEmpty, !visual);
           await rawKey('ctrl+alt+p');
-          await delay(150);
+          await until(
+            () => calls.length > 0,
+            'native Codex command received the key'
+          );
           assert.equal(calls.length, 1);
           assert.ok(calls[0].isEqual(selection));
           assert.ok(editor.selection.isEqual(selection));
@@ -348,6 +367,162 @@ async function run() {
       }
     );
   }
+  const fixture = vscode.extensions.getExtension('test.codex-focus-fixture');
+  await fixture.activate();
+  const inspectCodex = () =>
+    vscode.commands.executeCommand('test.codexFocus.inspect');
+  await record(
+    'Ctrl+L prioritizes the right editor then focuses the visible webview composer',
+    async () => {
+      await escape();
+      await vscode.commands.executeCommand('workbench.action.joinAllGroups');
+      editor = await vscode.window.showTextDocument(doc);
+      await vscode.commands.executeCommand('workbench.action.splitEditorRight');
+      await vscode.commands.executeCommand(
+        'chatgpt.sidebarSecondaryView.focus'
+      );
+      await delay(600);
+      await vscode.commands.executeCommand(
+        'workbench.action.focusFirstEditorGroup'
+      );
+      editor = vscode.window.activeTextEditor;
+      await position(1);
+      const left = vscode.window.tabGroups.activeTabGroup;
+      await rawKey('ctrl+l');
+      await delay(200);
+      assert.notEqual(vscode.window.tabGroups.activeTabGroup, left);
+      assert.equal((await inspectCodex()).focused, false);
+      editor = vscode.window.activeTextEditor;
+      await rawKey('ctrl+l');
+      await delay(300);
+      const state = await inspectCodex();
+      assert.equal(state.focused, true);
+      assert.equal(state.draft, 'isolated draft 中文');
+    }
+  );
+  await record(
+    'Ctrl+H returns from the actual webview input and preserves a Visual selection',
+    async () => {
+      await rawKey('ctrl+h');
+      await delay(200);
+      assert.equal((await inspectCodex()).focused, false);
+      assert.equal(
+        await renderer('!!document.activeElement?.closest(".monaco-editor")'),
+        true
+      );
+      editor = vscode.window.activeTextEditor;
+      const handler = await position(1);
+      await type('vj');
+      const selection = editor.selection;
+      const group = vscode.window.tabGroups.activeTabGroup;
+      await rawKey('ctrl+l');
+      await delay(200);
+      assert.equal((await inspectCodex()).focused, true);
+      await rawKey('ctrl+h');
+      await delay(200);
+      assert.equal(vscode.window.tabGroups.activeTabGroup, group);
+      assert.ok(editor.selection.isEqual(selection));
+      assert.equal(handler.vimState.currentMode, 2);
+      await escape();
+    }
+  );
+  await record(
+    'Ctrl+H also returns after clicking directly into the webview',
+    async () => {
+      await vscode.commands.executeCommand(
+        'workbench.action.focusActiveEditorGroup'
+      );
+      const point = await renderer(`(() => {
+      const frame = document.querySelector('iframe.webview[src*="extensionId=test.codex-focus-fixture"]');
+      const bounds = frame.getBoundingClientRect();
+      return {
+        x: window.screenX + bounds.x + 70,
+        y: window.screenY + window.outerHeight - window.innerHeight + bounds.y + 15,
+      };
+    })()`);
+      const { execFileSync } = require('node:child_process');
+      execFileSync('xdotool', [
+        'mousemove',
+        String(Math.round(point.x)),
+        String(Math.round(point.y)),
+        'click',
+        '1',
+      ]);
+      await delay(200);
+      assert.equal((await inspectCodex()).focused, true);
+      await rawKey('ctrl+h');
+      await delay(200);
+      assert.equal((await inspectCodex()).focused, false);
+      assert.equal(
+        await renderer('!!document.activeElement?.closest(".monaco-editor")'),
+        true
+      );
+    }
+  );
+  await record(
+    'Codex boundary Ctrl+J/K/L leaves the draft and focus intact',
+    async () => {
+      await rawKey('ctrl+l');
+      await delay(200);
+      for (const key of ['ctrl+j', 'ctrl+k', 'ctrl+l']) {
+        await rawKey(key);
+        await delay(120);
+        const state = await inspectCodex();
+        assert.equal(state.focused, true);
+        assert.equal(state.draft, 'isolated draft 中文');
+      }
+      await rawKey('ctrl+h');
+      await delay(150);
+    }
+  );
+  await record('Ctrl+L never opens a hidden Codex sidebar', async () => {
+    await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
+    await vscode.commands.executeCommand(
+      'workbench.action.focusActiveEditorGroup'
+    );
+    editor = vscode.window.activeTextEditor;
+    await position(1);
+    await rawKey('ctrl+l');
+    await delay(200);
+    assert.equal((await inspectCodex()).visible, false);
+  });
+  await record(
+    'Codex visible does not capture Quick Input Ctrl+H/L',
+    async () => {
+      await vscode.commands.executeCommand(
+        'chatgpt.sidebarSecondaryView.focus'
+      );
+      await delay(200);
+      const input = vscode.window.createInputBox();
+      input.value = 'keep this input';
+      const calls = [];
+      const registrations = [
+        'workbench.action.focusActiveEditorGroup',
+        'workbench.action.navigateLeft',
+        'workbench.action.navigateRight',
+      ].map((id) => vscode.commands.registerCommand(id, () => calls.push(id)));
+      try {
+        for (const key of ['ctrl+h', 'ctrl+l']) {
+          input.show();
+          await delay(150);
+          assert.equal(
+            await renderer(
+              '!!document.activeElement?.closest(".quick-input-widget")'
+            ),
+            true
+          );
+          await rawKey(key);
+          await delay(100);
+          assert.equal((await inspectCodex()).focused, false);
+          assert.deepEqual(calls, []);
+        }
+      } finally {
+        input.dispose();
+        registrations.forEach((registration) => registration.dispose());
+        await vscode.commands.executeCommand('closeFindWidget');
+      }
+    }
+  );
   await fs.writeFile(
     path.join(process.env.EDITOR_TOOLS_TEST_RESULTS, 'integration.json'),
     JSON.stringify(
