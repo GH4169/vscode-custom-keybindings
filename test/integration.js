@@ -311,6 +311,43 @@ async function run() {
       await vscode.commands.executeCommand('colorMarks.clearAll');
     }
   );
+  for (const visual of [false, true]) {
+    await record(
+      'raw Ctrl+Alt+P calls native Codex with unchanged ' +
+        (visual ? 'Visual selection' : 'Normal cursor line'),
+      async () => {
+        await vscode.commands.executeCommand(
+          'workbench.action.focusActiveEditorGroup'
+        );
+        editor = vscode.window.activeTextEditor;
+        const handler = await position(1, 2);
+        if (visual) await type('vj');
+        const selection = editor.selection;
+        const mode = handler.vimState.currentMode;
+        const text = doc.getText();
+        const calls = [];
+        // The native command is intercepted only in this isolated test host.
+        // Verify key routing without opening a real chat or sending a request.
+        const registration = vscode.commands.registerCommand(
+          'chatgpt.addToThread',
+          () => calls.push(vscode.window.activeTextEditor.selection)
+        );
+        try {
+          assert.equal(selection.isEmpty, !visual);
+          await rawKey('ctrl+alt+p');
+          await delay(150);
+          assert.equal(calls.length, 1);
+          assert.ok(calls[0].isEqual(selection));
+          assert.ok(editor.selection.isEqual(selection));
+          assert.equal(handler.vimState.currentMode, mode);
+          assert.equal(doc.getText(), text);
+        } finally {
+          registration.dispose();
+          await escape();
+        }
+      }
+    );
+  }
   await fs.writeFile(
     path.join(process.env.EDITOR_TOOLS_TEST_RESULTS, 'integration.json'),
     JSON.stringify(

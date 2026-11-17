@@ -62,21 +62,8 @@
   },
   {
     "key": "ctrl+alt+p",
-    "command": "codexDiffContext.addSelectionInline",
+    "command": "chatgpt.addToThread",
     "when": "editorTextFocus"
-  },
-  {
-    "key": "ctrl+alt+u",
-    "command": "codexDiffContext.explainSelection",
-    "when": "editorTextFocus"
-  },
-  {
-    "key": "ctrl+alt+q",
-    "command": "-codexDiffContext.addSelectionInline"
-  },
-  {
-    "key": "alt+shift+q",
-    "command": "-codexDiffContext.addSelectionInline"
   },
   {
     "key": "ctrl+alt+q",

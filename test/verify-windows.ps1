@@ -8,7 +8,4 @@ if((Get-Hash $original) -ne '8bd0d70cda8542f514a45534a14860ea48ddf39f149036838ae
 $copy=Join-Path $runtime 'out\vs\workbench\workbench.desktop.main.js'
 $text=[IO.File]::ReadAllText($copy)
 if(-not $text.Contains('/* editor-ime-mode verified patch */') -or -not $text.Contains('/* shell-ime verified patch */')){throw 'Runtime patches missing'}
-$tokens=$null;$errors=$null
-[Management.Automation.Language.Parser]::ParseFile((Join-Path $Root 'vscode-codex-diff-context\codex-ui.ps1'),[ref]$tokens,[ref]$errors)|Out-Null
-if($errors.Count){throw ($errors.Message -join '; ')}
-[pscustomobject]@{systemUnmodified=$true;runtimePatched=$true;uiaSyntaxValid=$true}|ConvertTo-Json -Compress
+[pscustomobject]@{systemUnmodified=$true;runtimePatched=$true}|ConvertTo-Json -Compress

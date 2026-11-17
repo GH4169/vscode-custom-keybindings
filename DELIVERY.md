@@ -10,7 +10,7 @@
 | `vscode-vim-marker-folds` | marker 创建/安全删除、provider、行数装饰、VSIX | 已安装；创建/撤销/provider 通过；EOF 行数等边缘视觉情况未完整验证 |
 | `vscode-color-marks` | 固定坐标/组/颜色/跳转/重命名、VSIX | 已安装；跨次数跳转、固定坐标、Leader 共存通过 |
 | `vscode-codex-stability` | 只读诊断 CLI、测试、说明 | 未见原诊断信号，未改 http.electronFetch |
-| `vscode-codex-diff-context` | 旧版本/WSL 当前缓冲区/多选区正文、安全围栏、串行操作、就绪等待、Windows UIA/X11 助手、VSIX | 0.3.4 已修复 Windows UI / WSL 分离宿主的硬依赖加载失败及命令缺失；快照和加载专项通过；本地单选区使用原生附件并检查卡片；真实 Codex 发送端到端未验证 |
+| `vscode-codex-diff-context` | 已按用户后续要求停用 | 扩展已卸载，源码及独立 Git 历史移至本机归档；Ctrl+Alt+P 直接执行 Codex 原生 `chatgpt.addToThread` |
 | `shell-ime` | Bash/Zsh/tcsh 脚本、Linux 状态 helper、Code bridge/renderer、VSIX | Bash/Zsh PTY 与 Code xterm 提示符/read/ime 切换通过；tmux 跳过；GNOME/VTE 不在当前目标，未部署 |
 | `editor-ime-mode` | 用户运行副本构建器、版本/校验保护、renderer/VSIX、Vim/GVim 脚本和终端助手 | Windows/Linux 用户副本已生成；Linux renderer 模式切换通过；Windows 真实微软拼音、GVim/IBus 尚未完整验收 |
 | `clipboard` | X11 内存 50 条历史、热键/弹窗/粘贴、启动/单实例/服务/测试、ETX 检测入口 | 独立桌面 :97 已运行，服务启用；并发和显示别名通过；没有 ETX，未实现代理内存修复，不影响现有 Windows 工具 |
@@ -19,6 +19,8 @@
 ## 开始使用
 
 普通扩展安装与配置已完成，现有窗口是否已加载取决于 VS Code 生命周期。用户可在合适时机执行 Developer: Reload Window。
+
+Codex 快捷键已按后续要求简化：Ctrl+Alt+P 与右键 Add to Codex Chat / F13 完全相同。Normal 使用光标当前行，存在选区使用原生选区范围；生成文件名/行号附件卡片后由用户输入问题。旧 P/U/Q 自定义扩展绑定已清理，Ctrl+Alt+U 自动解释随扩展移除，不自动发送。
 
 输入法补丁需要运行用户副本。保存文件并完全退出所有 Code 窗口后，运行 Windows `%LOCALAPPDATA%\editor-tools\code-ime.cmd`；不能只 Reload Window 切换主程序。原系统 Code 文件未改，随时可退出用户副本后从系统入口恢复。
 
@@ -32,7 +34,7 @@
 
 19 项核心 JS 逻辑测试、3 项配置合并/回滚测试、2 项 renderer/补丁保护单元测试（合计 24 项 JS）、2 项 Python 逻辑测试、2 项 Bash/Zsh PTY 测试、1 项 X11 单实例测试已通过。联合集成现为 13 项，包含真实 Enter、Ctrl+W/Ctrl+S、Leader Explorer、颜色次数跳转、IME 状态检查。逻辑/结构验证不能代替 Windows 拼音或真实 Codex 模型请求验证。
 
-0.3.4 后续修复新增 4 项加载/跨宿主命令测试，本扩展 8 项单元测试通过。独立真实 Code 1.145.2 在没有 Codex 的临时扩展目录中调用 P/U 均可激活并正确处理缺失提示，源文件与选区不变；结果在 `../vscode-codex-diff-context/test-results/activation.json`。更新安装后现有窗口需手动 Reload Window。
+后续移除 Codex 自定义扩展后，配置合并/回滚测试共 4 项通过，联合集成更新为 15 项通过。新增两项在隔离 Code 中实际发送 Ctrl+Alt+P，并拦截原生命令验证 Normal 当前行、Visual 选区及 Vim 模式不变；不连接实际会话、不发送模型请求。此项验证的是按键路由，原生附件显示行为由已安装的官方 Codex 提供。
 
 原指南有条件的平台内容不会因为用户选择 Windows + WSL 而被伪装为已部署。ETX 没有目标代理符号布局，桥接修复只有检测入口；GNOME/VTE 没有对应目标终端，未实现该动态库后端。终端 Vim 助手可恢复 IBus 引擎名称，尚未实现拼音内部 Shift 中英文状态的完整保存与恢复。真实 Windows 输入法、Codex 请求验收需要后续在匹配桌面进行受控测试；当前未据此声明所有平台验收完成。
 
@@ -40,4 +42,6 @@
 
 配置及 Shell/Vim source 前的备份在本仓库 `backups/`，不提交。`node merge.js rollback <backup>` 校验安装后散列，拒绝覆盖后续用户修改。恢复跨多次 apply 的初始状态时按时间逆序逐个回滚；Shell/Vim 的独立 managed source 块可移除。
 
-11 个仓库只提交源码、配置片段、测试与文档；VSIX、Code 副本、用户配置、日志、缓存和登录信息不纳入 Git。之后可逐仓库执行 `git remote add origin <url>`、`git push -u origin main`。
+当前 ~/.install 中保留 10 个活跃独立仓库。停用的 vscode-codex-diff-context 源码及 Git 历史已移至 `~/.local/share/editor-tools/retired/vscode-codex-diff-context/`，不再作为插件安装或快捷键依赖。
+
+各仓库只提交源码、配置片段、测试与文档；VSIX、Code 副本、用户配置、日志、缓存和登录信息不纳入 Git。之后可逐仓库执行 `git remote add origin <url>`、`git push -u origin main`。

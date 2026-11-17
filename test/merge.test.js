@@ -44,6 +44,51 @@ test('obsolete terminal-hijacking navigation is replaced and unrelated shortcuts
   a.equal(parse(result)[1].when, '!inputFocus');
   a.deepEqual(parse(mergeBindings(result, desired)), parse(result));
 });
+test('retired Codex extension bindings are removed while native shortcuts survive', () => {
+  const desired = require('../config/keybindings.json');
+  const old = JSON.stringify([
+    { key: 'f13', command: 'chatgpt.addToThread' },
+    {
+      key: 'ctrl+alt+p',
+      command: 'codexDiffContext.addSelectionInline',
+      when: 'editorTextFocus',
+    },
+    {
+      key: 'ctrl+alt+u',
+      command: 'codexDiffContext.explainSelection',
+      when: 'editorTextFocus',
+    },
+    { key: 'ctrl+alt+q', command: '-codexDiffContext.addSelectionInline' },
+    { key: 'alt+shift+q', command: '-codexDiffContext.addSelectionInline' },
+    { key: 'ctrl+alt+u', command: 'user.unrelated', when: 'terminalFocus' },
+    ...desired,
+  ]);
+  const result = parse(mergeBindings(old, desired));
+  a.ok(
+    !result.some((binding) => /^-?codexDiffContext\./.test(binding.command))
+  );
+  a.ok(
+    result.some(
+      (binding) =>
+        binding.key === 'f13' && binding.command === 'chatgpt.addToThread'
+    )
+  );
+  a.ok(result.some((binding) => binding.command === 'user.unrelated'));
+  a.deepEqual(
+    result.filter((binding) => binding.key === 'ctrl+alt+p'),
+    [
+      {
+        key: 'ctrl+alt+p',
+        command: 'chatgpt.addToThread',
+        when: 'editorTextFocus',
+      },
+    ]
+  );
+  a.equal(
+    mergeBindings(JSON.stringify(result), desired),
+    JSON.stringify(result)
+  );
+});
 test('reversible installation refuses to overwrite subsequent user edits', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'keybindings-'));
   fs.writeFileSync(path.join(dir, 'settings.json'), '{}');

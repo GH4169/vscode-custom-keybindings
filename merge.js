@@ -50,7 +50,10 @@ function mergeSettings(text, desired) {
 function mergeBindings(text, desired) {
   const old = parse(text);
   if (!Array.isArray(old)) throw new Error('keybindings.json must be an array');
+  const retired = (binding) =>
+    /^-?codexDiffContext\./.test(binding.command || '');
   if (
+    !old.some(retired) &&
     desired.length <= old.length &&
     JSON.stringify(old.slice(-desired.length)) === JSON.stringify(desired)
   )
@@ -86,7 +89,7 @@ function mergeBindings(text, desired) {
         binding.command
       ) ||
         binding.command === 'vimNavigation.closeExplorer');
-    if (same || obsolete) remove.push(i);
+    if (same || obsolete || retired(binding)) remove.push(i);
   }
   // Delete array entries by syntax-node offsets. jsonc-parser's formatted
   // deletion can produce an extra brace for compact arrays with comments.
