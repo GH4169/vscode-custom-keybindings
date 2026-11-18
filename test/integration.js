@@ -397,6 +397,58 @@ async function run() {
     }
   );
   await record(
+    'Normal handles Windows IME Process keys and blocks Chinese composition, Insert restores input',
+    async () => {
+      await vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
+      editor = vscode.window.activeTextEditor;
+      const h = await position(0, 2);
+      const before = doc.getText();
+      const result = await renderer(`(() => {
+        const input = document.activeElement;
+        const key = new KeyboardEvent('keydown', {
+          key: 'Process', code: 'KeyL', keyCode: 229, isComposing: true,
+          bubbles: true, cancelable: true
+        });
+        input.dispatchEvent(key);
+        const composition = new CompositionEvent('compositionstart', {
+          data: '中', bubbles: true, cancelable: true
+        });
+        input.dispatchEvent(composition);
+        const text = new InputEvent('beforeinput', {
+          data: '中文', inputType: 'insertCompositionText', isComposing: true,
+          bubbles: true, cancelable: true
+        });
+        input.dispatchEvent(text);
+        return [key.defaultPrevented, composition.defaultPrevented, text.defaultPrevented];
+      })()`);
+      assert.deepEqual(result, [true, true, true]);
+      await until(() => editor.selection.active.character === 3, 'Process KeyL moves Vim cursor');
+      assert.equal(doc.getText(), before);
+      assert.equal(h.vimState.currentMode, 0);
+      assert.equal((await vscode.commands.executeCommand('editorImeMode.inspect')).restricted, true);
+      await rawKey('i');
+      await until(() => h.vimState.currentMode === 1, 'i enters Insert');
+      assert.equal(await renderer(`(() => {
+        const event = new InputEvent('beforeinput', {
+          data: '中文', inputType: 'insertCompositionText', isComposing: true,
+          bubbles: true, cancelable: true
+        });
+        document.activeElement.dispatchEvent(event);
+        return event.defaultPrevented;
+      })()`), false);
+      await until(async () =>
+        !(await vscode.commands.executeCommand('editorImeMode.inspect')).restricted,
+        'Insert releases native IME restriction'
+      );
+      await vscode.commands.executeCommand('type', { text: '中文' });
+      await until(() => doc.getText().includes('中文'), 'Insert accepts Chinese text');
+      await escape();
+      await editor.edit((b) => b.replace(
+        new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)), before
+      ));
+    }
+  );
+  await record(
     'terminal prompt IME restriction is released for ime system and read',
     async () => {
       const terminal = vscode.window.createTerminal({

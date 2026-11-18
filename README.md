@@ -41,7 +41,9 @@ node merge.js rollback "<返回的 backup 目录>"
 
 Ctrl+A/F/Z 交给 VS Code。已有 Insert 的 Ctrl+H/J/K/L 映射保留。
 
-开启输入法限制时，命令行/搜索输入区也会暂时只读，回车必须由工作台键位显式转交 VSCodeVim。Enter 规则覆盖 `CommandlineInProgress` 和 `SearchInProgressMode`，因此 `:w` 可保存，`/`、`?` 可提交搜索；Insert 仍走原生换行。修改该规则后配置自动加载，无需重启编辑器。
+开启输入法限制时，命令行/搜索的回车由工作台键位显式转交 VSCodeVim，避免只读输入区吞掉提交。Enter 规则覆盖 `CommandlineInProgress` 和 `SearchInProgressMode`，因此 `:w` 可保存，`/`、`?` 可提交搜索；Insert 仍走原生换行。修改该规则后配置自动加载，无需重启编辑器。
+
+`local.editor-ime-mode` 0.2.0 在 Windows 用原生助手把代码区 Normal/Visual 切为英文，离开代码输入区或进入 Insert/Replace 后恢复之前输入法。需要用户运行副本的焦点桥；桌面/开始菜单快捷方式已改到该副本。其余输入框保留中文输入；微软拼音的 `Process/229` 键也有英文物理键回退。
 
 Codex 往返需要 `local.vim-navigation` 0.1.1 及实际运行 Code 的焦点桥。当前 Code 1.145.2 不会在 sidebar Webview 获焦时保持 `focusedView/auxiliaryBarFocus`；规则改用 `vimNavigation.focusedWebview`，仅匹配右侧 Codex，鼠标点入也有效。Ctrl+L 不打开隐藏的 Codex，不修改草稿、不发送。详情及补丁入口见同级 `vscode-vim-navigation/README.md`。
 
@@ -65,3 +67,5 @@ bash test/run-integration.sh
 本次 H/L 修复后联合检查为 21 项通过，新增 6 项使用真正 Webview 的独立夹具验证右组优先、Normal/Visual 往返、鼠标点入后返回、草稿与边界、隐藏侧栏、Quick Input 不触发导航。夹具与官方 Codex 使用相同的 view ID 和 composer 获焦逻辑；没有使用真实会话或用户草稿，尚不能替代已登录官方 Codex 的 Windows 验收。可用 `EDITOR_TOOLS_TEST_FILTER` 正则筛选检查名称。
 
 2026-11-17：修复 `:w` 回车被吞，联合检查更新为 25 项全部通过，配置合并/回滚共 7 项通过。新增真实按键验证英文限制开/关时的 `:w` 落盘、正反向搜索提交和 Insert 单次换行。原有测试改为等待 Vim 队列完成及终端输入状态，避免固定延时导致误判；配置迁移保留其他 Enter 规则和 JSONC 注释。
+
+同日输入法修复后联合检查为 26 项全部通过，新增 Normal 的模拟 Windows IME `Process/229` 和中文 composition 拦截、Insert 中文输入恢复及 native bridge 请求状态检查。Windows 原生 helper 另以不可见窗口验证英文布局切换和恢复；真实微软拼音候选窗/中英内部状态仍需实际输入确认。

@@ -54,6 +54,8 @@ Codex 快捷键已按后续要求简化：Ctrl+Alt+P 与右键 Add to Codex Chat
 
 2026-11-17 `:w` 修复：输入法限制开启时，命令/搜索模式的默认回车无法产生 Vim 输入；工作台 Enter 规则此前仅覆盖 Normal/Visual。现增加 `CommandlineInProgress`、`SearchInProgressMode`，保留其余模式行为，Windows User 配置自动加载。修复前已在隔离编辑器复现 `:w` 后保持命令模式且磁盘未更新；修复后 25 项联合 GUI、7 项配置合并/回滚全部通过，包含真实回车保存临时文件、英文限制开/关、正反搜索、Insert 换行。测试使用同版本 Linux Code；未操作日常 Windows 窗口，也未修改用户 RTL 文件。
 
+2026-11-17 Normal 输入法修复：`local.editor-ime-mode` 0.2.0 已安装 Windows UI，运行副本 IME payload 已升级且保留 shell-ime/导航补丁；3 个桌面/开始菜单快捷方式已改到用户运行副本，原快捷方式保存在 `%LOCALAPPDATA%\editor-tools\shortcut-backups\20261118-104702`。新 Windows helper 将前台关联 Code 代码输入区切英文，离开/Insert 后恢复捕获的布局/IMM 状态；增加 `Process/229` 物理键及 composition 处理、输入节点恢复检查。26 项联合 GUI、5 项 IME 逻辑/补丁、6 项 Windows 原生不可见窗口检查通过。未改变 Windows 焦点/鼠标、未重启日常窗口；完整微软拼音输入仍需用户验收。
+
 本机 WSL Ctrl+H 修复：最近一次 WSL 窗口日志中的主进程来自 Windows 系统安装；此前只有用户运行副本带 `vimNavigation.focusedWebview` 焦点桥。`code .` 可转交已有主进程，故只调整 CLI 软链接不足以保证桥存在。此次保留现有键位，将相同、受版本和校验和保护的焦点桥补到系统 Code 1.145.2，核对系统版和用户副本的焦点函数一致及各自工作台校验和。备份为 `vscode-vim-navigation/backups/2026-11-18T02-18-39Z-system-focus/`，无登录信息。仅此焦点修复现在可通过 Reload Window 加载；不再要求切换运行副本。
 
 同版本隔离运行时去掉桥后，两项 Ctrl+H GUI 返回检查失败；补回后 6 项焦点 GUI 与 6 项导航逻辑检查通过，涵盖 Normal/Visual 往返、鼠标点入、草稿保持、隐藏 Codex 和 Quick Input。原始前后结果及实际 Windows 文件核对见 `test-results/focus-before-integration.json`、`integration.json`、`focus-windows-runtime.json`。GUI 使用独立桌面 Linux Code 与 Webview 夹具，未宣称已操作已登录 Windows 官方 Codex。Code 升级将替换系统补丁，届时需重新适配。
