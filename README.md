@@ -43,9 +43,9 @@ Ctrl+A/F/Z 交给 VS Code。已有 Insert 的 Ctrl+H/J/K/L 映射保留。
 
 开启输入法限制时，命令行/搜索输入区也会暂时只读，回车必须由工作台键位显式转交 VSCodeVim。Enter 规则覆盖 `CommandlineInProgress` 和 `SearchInProgressMode`，因此 `:w` 可保存，`/`、`?` 可提交搜索；Insert 仍走原生换行。修改该规则后配置自动加载，无需重启编辑器。
 
-Codex 往返需要 `local.vim-navigation` 0.1.1 及其用户运行副本焦点桥。当前 Code 1.145.2 不会在 sidebar Webview 获焦时保持 `focusedView/auxiliaryBarFocus`；规则改用 `vimNavigation.focusedWebview`，仅匹配右侧 Codex，鼠标点入也有效。Ctrl+L 不打开隐藏的 Codex，不修改草稿、不发送。详情及补丁入口见同级 `vscode-vim-navigation/README.md`。
+Codex 往返需要 `local.vim-navigation` 0.1.1 及实际运行 Code 的焦点桥。当前 Code 1.145.2 不会在 sidebar Webview 获焦时保持 `focusedView/auxiliaryBarFocus`；规则改用 `vimNavigation.focusedWebview`，仅匹配右侧 Codex，鼠标点入也有效。Ctrl+L 不打开隐藏的 Codex，不修改草稿、不发送。详情及补丁入口见同级 `vscode-vim-navigation/README.md`。
 
-Windows 请保存文件并完全退出全部 Code 窗口，再运行 `%LOCALAPPDATA%\editor-tools\code-ime.cmd`。用户副本与系统版共享配置/扩展；当前系统版进程只 Reload Window 不能加载焦点桥。
+已修复 WSL `code .` 转交系统版进程时 Ctrl+H 失效：Windows 系统版与用户运行副本的 Code 1.145.2 现均含相同焦点桥，配置和扩展继续共用。已打开的窗口执行 Developer: Reload Window 即可加载此次焦点补丁。切换到用户副本的其他运行时功能仍需退出所有窗口再运行 `%LOCALAPPDATA%\editor-tools\code-ime.cmd`。升级 Code 后需重新检查焦点桥兼容性。
 
 Ctrl+Alt+P 绑定 `chatgpt.addToThread`，与右键菜单 Add to Codex Chat / 既有 F13 使用同一命令。Codex 显示带文件名和行号的原生附件卡片，随后在输入框填写问题；不模拟 Visual、不插入解释正文、不自动发送。编辑器 Normal、Visual 和鼠标选区均使用原生语义，只在 `editorTextFocus` 生效。
 
