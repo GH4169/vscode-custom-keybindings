@@ -27,7 +27,8 @@ node merge.js rollback "<返回的 backup 目录>"
 | Explorer Enter / t | 安全替换当前标签 / 原生打开保留原标签 |
 | 空格 h/H/0/1-4，]h/[h | 会话颜色标记；次数和 Explorer 补充由扩展支持 |
 | zf{motion}/Visual zf、zF | marker 创建；Normal zf 等待动作，支持 `%`、次数、文本对象 |
-| zd/zD/zE、zo/zc/za | marker 单层/递归/全部删除；展开/收起/切换 |
+| zd/zD/zE | marker 单层/递归/全部删除 |
+| Normal `zo` / `za`，`zc` | 切换折叠，收起折叠。Normal `zo` 沿用 `.vimrc` 的 `nnoremap zo za` |
 | zO/zC/zA、zr/zm、zR/zM | 递归操作、逐层展开/收起、全部展开/收起 |
 | zn/zN/zi、zv/zx/zX、zj/zk/[z/]z | 临时折叠开关、刷新/显示光标、折叠边界跳转 |
 | Enter | Normal viw；Visual Esc；命令行/搜索提交；Insert 正常换行 |

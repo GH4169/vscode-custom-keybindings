@@ -220,6 +220,48 @@ async function run() {
     );
     assert.deepEqual(ranges, []);
   });
+  await record('raw Normal zo opens and closes a marker fold', async () => {
+    const fixture = path.join(process.env.EDITOR_TOOLS_TEST_WORKSPACE, 'toggle-fold.sv');
+    const text = [
+      'module toggle_fold; // {{{',
+      '  logic x;',
+      'endmodule // }}}',
+      '// next section',
+      '',
+    ].join('\n');
+    await fs.writeFile(fixture, text);
+    const foldDoc = await vscode.workspace.openTextDocument(fixture);
+    const previousEditor = editor;
+    editor = await vscode.window.showTextDocument(foldDoc, { preview: false });
+    const bodyVisible = () => editor.visibleRanges.some((range) =>
+      range.start.line <= 1 && range.end.line >= 1
+    );
+    try {
+      await position(0);
+      await until(
+        () => renderer('globalThis.__editorImeMode.inspect().held'),
+        'Vim editor receives physical keys'
+      );
+      await type('zM');
+      await until(() => !bodyVisible(), 'marker fold starts closed');
+      for (const open of [true, false, true]) {
+        await rawKey('z');
+        await rawKey('o');
+        await until(
+          () => bodyVisible() === open,
+          open ? 'zo opens the fold' : 'zo closes the fold'
+        );
+        assert.equal(editor.selection.active.line, 0);
+        assert.equal(foldDoc.getText(), text);
+      }
+    } finally {
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+      editor = await vscode.window.showTextDocument(
+        previousEditor.document,
+        previousEditor.viewColumn
+      );
+    }
+  });
   await record(
     'leader maps coexist; no global editor space chord',
     async () => {

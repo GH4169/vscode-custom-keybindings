@@ -132,12 +132,12 @@ test('Codex focus upgrade removes stale rules and preserves other webview shortc
   a.equal(bindings.length, desired.length + 1);
   a.equal(mergeBindings(merged, desired), merged);
 });
-test('fold upgrade replaces old immediate zf and toggle zo while preserving other mappings', () => {
+test('fold upgrade restores the Normal zo toggle and keeps native zf motions', () => {
   const desired = require('../config/settings.json');
   const old = JSON.stringify({
     'vim.normalModeKeyBindingsNonRecursive': [
       { before: ['z', 'f'], commands: ['gvimMarkerFolds.createFold'] },
-      { before: ['z', 'o'], commands: ['editor.toggleFold'] },
+      { before: ['z', 'o'], after: ['z', 'o'] },
       { before: ['x'], commands: ['user.keep'] },
     ],
   });
@@ -154,7 +154,7 @@ test('fold upgrade replaces old immediate zf and toggle zo while preserving othe
     normal.find((mapping) => mapping.before.join('') === 'zo'),
     {
       before: ['z', 'o'],
-      after: ['z', 'o'],
+      after: ['z', 'a'],
     }
   );
   a.ok(normal.some((mapping) => mapping.commands?.includes('user.keep')));
